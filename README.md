@@ -1,36 +1,47 @@
-FastAPI + Argo CD GitOps Demo on K3s
+# FastAPI + Argo CD GitOps Demo on K3s
 
-A hands-on repository to learn GitOps with Argo CD using a simple FastAPI application deployed on Kubernetes (K3s).
+A hands-on demo project to learn **Argo CD** and **GitOps** using a simple FastAPI application deployed on Kubernetes (K3s).
 
-This repo is designed for anyone who wants to understand:
+This repository is built for learning how Argo CD works in a real workflow by syncing Kubernetes manifests from GitHub to your cluster.
 
-* Argo CD fundamentals
-* GitOps workflow
-* Kubernetes deployments using manifests
-* Continuous sync between Git and Kubernetes
-* Self-healing
-* Rollbacks
-* Auto Sync
+---
 
-⸻
+# What You'll Learn
 
-Architecture
+By using this repository, you’ll understand:
 
-Developer → GitHub Repo → Argo CD → Kubernetes Cluster (K3s)
+- Argo CD fundamentals
+- GitOps workflow
+- Kubernetes deployment using YAML manifests
+- Continuous sync between Git and Kubernetes
+- Auto Sync
+- Self Healing
+- Drift Detection
+- Rollbacks
+- Reconciliation Loop
 
-Flow
+---
 
-1. Make code or manifest changes locally
+# Project Architecture
+
+```text
+Developer → GitHub Repository → Argo CD → Kubernetes Cluster (K3s)
+```
+
+## Workflow
+
+1. Make changes locally
 2. Push changes to GitHub
 3. Argo CD watches the repository
 4. Argo CD detects changes
-5. Argo CD syncs them to Kubernetes
-6. Kubernetes deploys/updates the application
+5. Argo CD syncs changes to Kubernetes
+6. Kubernetes deploys the application
 
-⸻
+---
 
-What This Repository Contains
+# Repository Structure
 
+```bash
 .
 ├── app/
 │   ├── main.py
@@ -43,397 +54,382 @@ What This Repository Contains
 ├── Dockerfile
 ├── argocd-app.yaml
 └── README.md
+```
 
-⸻
+---
 
-Purpose of This Repository
+# Prerequisites
 
-This project exists mainly to help you learn Argo CD.
+Before getting started, make sure you have:
 
-The FastAPI application is intentionally simple.
+- Docker
+- Kubernetes / K3s cluster
+- kubectl configured
+- Git installed
+- GitHub account
+- Docker Hub account
+- Argo CD installed in your cluster
 
-The real learning happens in:
+---
 
-* Kubernetes manifests
-* Argo CD Application configuration
-* Syncing Git → Cluster
-* Watching Argo CD reconcile state
+# Clone the Repository
 
-⸻
+```bash
+git clone <your-repository-url>
+cd <repository-name>
+```
 
-Prerequisites
+---
 
-Before starting:
-
-* Docker installed
-* K3s or Kubernetes cluster running
-* kubectl configured
-* GitHub account
-* Docker Hub account
-* Argo CD installed in cluster
-
-⸻
-
-Clone the Repository
-
-git clone <your-repo-url>
-cd fastapi-argocd-demo
-
-⸻
-
-Run FastAPI Locally
+# Run FastAPI Locally
 
 Install dependencies:
 
+```bash
 pip install -r app/requirements.txt
+```
 
-Run:
+Run the application:
 
+```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-Open:
+Access it in browser:
 
+```bash
 http://localhost:8000
+```
 
-⸻
+---
 
-Build Docker Image
+# Build Docker Image
 
+```bash
 docker build -t your-dockerhub-username/fastapi-argocd-demo:latest .
+```
 
-⸻
+---
 
-Push Image to Docker Hub
+# Push Docker Image
 
 Login:
 
+```bash
 docker login
+```
 
-Push:
+Push image:
 
+```bash
 docker push your-dockerhub-username/fastapi-argocd-demo:latest
+```
 
-⸻
+---
 
-Deploy to Kubernetes Manually (Optional)
+# Deploy to Kubernetes (Optional Manual Deployment)
 
-Before using Argo CD, deploy manually once to understand what Argo CD automates.
+Before using Argo CD, you can test the manifests manually.
 
 Apply manifests:
 
+```bash
 kubectl apply -f k8s/
-
-Check:
-
-kubectl get pods
-kubectl get svc
-
-Delete:
-
-kubectl delete -f k8s/
-
-⸻
-
-Install Argo CD on K3s
-
-Create namespace:
-
-kubectl create namespace argocd
-
-Install:
-
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
 
 Verify:
 
+```bash
+kubectl get pods
+kubectl get svc
+```
+
+Delete again before using Argo CD:
+
+```bash
+kubectl delete -f k8s/
+```
+
+---
+
+# Install Argo CD on K3s
+
+Create namespace:
+
+```bash
+kubectl create namespace argocd
+```
+
+Install Argo CD:
+
+```bash
+kubectl apply -n argocd \
+-f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+Verify installation:
+
+```bash
 kubectl get pods -n argocd
+```
 
-Wait until all pods are Running.
+Wait until all pods are in `Running` state.
 
-⸻
+---
 
-Access Argo CD UI
+# Access Argo CD UI
 
-Port-forward:
+Port forward:
 
+```bash
 kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
 
 Open browser:
 
+```bash
 https://localhost:8080
+```
 
-⸻
+---
 
-Get Argo CD Admin Password
+# Login to Argo CD
 
-kubectl get secret argocd-initial-admin-secret -n argocd -o yaml
+Get admin password:
 
-Decode:
+```bash
+kubectl get secret argocd-initial-admin-secret \
+-n argocd \
+-o jsonpath="{.data.password}" | base64 -d
+```
 
-echo <base64-password> | base64 --decode
+Login with:
 
-Login:
+```text
+Username: admin
+Password: <decoded-password>
+```
 
-username: admin
-password: <decoded-password>
+---
 
-⸻
-
-Create Argo CD Application
+# Create Argo CD Application
 
 Apply:
 
+```bash
 kubectl apply -f argocd-app.yaml
+```
 
-This tells Argo CD:
+This connects Argo CD to your GitHub repository and deploys the manifests from the `k8s/` directory.
 
-* which Git repo to watch
-* which branch to watch
-* which folder contains manifests
-* where to deploy inside Kubernetes
+---
 
-⸻
+# Hands-On Argo CD Learning Exercises
 
-Learning Exercises (Recommended)
+This repository is mainly meant to help you learn Argo CD by experimenting.
 
-This is where Argo CD becomes fun.
+---
 
-⸻
+## 1. Test GitOps Sync
 
-1. Test GitOps Deployment
+Edit:
 
-Change something inside:
-
+```bash
 k8s/deployment.yaml
+```
 
 Example:
 
+Change:
+
+```yaml
 replicas: 1
+```
 
-Change to:
+To:
 
+```yaml
 replicas: 3
+```
 
 Commit and push:
 
+```bash
 git add .
-git commit -m "scale app"
+git commit -m "Scale app to 3 replicas"
 git push
+```
 
-Then watch:
+Now watch:
 
+```bash
 kubectl get pods
+```
 
-Argo CD will sync automatically.
+Argo CD will automatically sync the change.
 
-⸻
+---
 
-2. Test Self-Healing
+# 2. Test Self-Healing
 
-Scale deployment manually:
+Scale manually:
 
+```bash
 kubectl scale deployment fastapi-app --replicas=1
+```
 
-If Git says replicas should be 3…
-
-Argo CD will detect drift and restore it back to 3.
+If Git still says `3`, Argo CD will detect drift and restore it back.
 
 This demonstrates:
 
-Self Healing
+- Drift Detection
+- Self Healing
 
-Git remains the source of truth.
+---
 
-⸻
+# 3. Test Delete Recovery
 
-3. Test Delete Recovery
+Delete deployment manually:
 
-Delete deployment:
-
+```bash
 kubectl delete deployment fastapi-app
+```
 
 Argo CD will recreate it automatically from Git.
 
-This shows:
+This demonstrates reconciliation.
 
-Reconciliation
+---
 
-⸻
+# 4. Observe Argo CD UI
 
-4. Observe Sync Status
+Open Argo CD dashboard and explore:
 
-Open Argo CD UI.
+- Application Tree
+- Pods
+- Deployments
+- Services
+- Sync Status
+- Health Status
 
-You’ll see:
+---
 
-* Application Tree
-* Deployment
-* Pods
-* Service
-* Sync Status
-* Health Status
+# Important Argo CD Concepts
 
-Important statuses:
+## Sync Status
 
-Synced
+### Synced
+Git state matches cluster state.
 
-Git state = Cluster state
+### OutOfSync
+Git state does not match cluster state.
 
-OutOfSync
+---
 
-Git state ≠ Cluster state
+## Health Status
 
-Healthy
+### Healthy
+Application is running correctly.
 
-Application running correctly
+### Degraded
+Application has issues.
 
-Degraded
+---
 
-Something is failing
+## Auto Sync
 
-⸻
+Argo CD automatically deploys changes whenever code is pushed to Git.
 
-5. Try Manual Sync
+---
 
-Disable auto-sync and push a change.
+## Self Heal
 
-Argo CD will show:
+If someone changes the cluster manually, Argo CD restores it back to Git state.
 
-OutOfSync
+---
 
-Then click:
+## Prune
 
-Sync
+If a resource is removed from Git, Argo CD deletes it from Kubernetes too.
 
-This helps understand manual reconciliation.
+---
 
-⸻
+## Rollback
 
-6. Rollback Practice
+Rollback is done by reverting Git commits.
 
-Deploy one version.
+Example:
 
-Push another version.
-
-Then rollback to older commit in Git:
-
+```bash
 git revert <commit-id>
 git push
+```
 
-Argo CD redeploys previous version.
+Argo CD redeploys previous version automatically.
 
-This is one of the biggest GitOps benefits.
+---
 
-⸻
+# Important Note
 
-Key Argo CD Concepts You’ll Learn
+## Argo CD does NOT:
 
-Through this repo you’ll understand:
+- build Docker images
+- run tests
+- package applications
 
-GitOps
+## Argo CD DOES:
 
-Git is the source of truth.
+- watch Git repositories
+- compare desired vs actual state
+- sync manifests to Kubernetes
+- deploy applications
+- detect drift
+- self-heal resources
 
-⸻
+---
 
-Sync
+# Recommended Next Steps
 
-Apply Git changes to cluster.
+Once you're comfortable with this repo, continue with:
 
-⸻
+- Helm + Argo CD
+- ApplicationSet
+- Multi-environment deployments
+- Private Git repositories
+- Docker registry secrets
+- Ingress + TLS
+- Multi-cluster Argo CD
+- Argo CD on EKS
 
-Auto Sync
+---
 
-Automatically deploy on Git push.
+# Final Goal
 
-⸻
+After working through this repository, you should be able to understand:
 
-Self Heal
+- What GitOps is
+- Why Argo CD is used
+- How Argo CD syncs Git to Kubernetes
+- How drift detection works
+- How self-healing works
+- How rollback works
 
-Fix manual drift in cluster.
+---
 
-⸻
+# Best Way to Learn
 
-Prune
+Clone the repo.
 
-Delete Kubernetes resources removed from Git.
+Deploy it.
 
-⸻
+Modify it.
 
-Rollback
-
-Return to previous working state using Git history.
-
-⸻
-
-Reconciliation Loop
-
-Argo CD continuously compares:
-
-Desired State (Git)
-vs
-Actual State (Cluster)
-
-⸻
-
-Important Note
-
-Argo CD does NOT:
-
-* build Docker images
-* run tests
-* package applications
-
-Argo CD DOES:
-
-* monitor Git repositories
-* compare desired vs actual state
-* deploy manifests
-* sync Kubernetes
-* self-heal drift
-
-⸻
-
-Next Things to Explore
-
-Once comfortable with this repo, try:
-
-* Helm + Argo CD
-* ApplicationSets
-* Multiple environments (dev/stage/prod)
-* Private Git repos
-* Ingress
-* TLS
-* Docker registry authentication
-* Multi-cluster deployments
-* Argo CD + Helm charts
-* Argo CD on EKS
-
-⸻
-
-Final Goal
-
-By working through this repo you should be able to confidently answer:
-
-* What is GitOps?
-* Why use Argo CD?
-* How does Argo CD sync with Git?
-* What is reconciliation?
-* How does self-healing work?
-* How do rollbacks work in GitOps?
-
-⸻
-
-If you’re learning Argo CD:
-
-Clone this repo.
-
-Break things.
+Break it.
 
 Push changes.
 
-Watch Argo CD fix them.
+Watch Argo CD fix everything.
 
-That’s the fastest way to learn it.
+That’s the fastest way to learn Argo CD hands-on.
 
-⸻
+---
